@@ -1,2 +1,2 @@
-Back-Propagation-
+Back-Propagation
 =================
