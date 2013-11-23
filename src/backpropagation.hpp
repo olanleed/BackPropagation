@@ -24,9 +24,8 @@ private:
   dmatrix weight_hidden_;
   dmatrix diff_weight_input_;
   dmatrix diff_weight_hidden_;
-  dvector input_;
   dvector hidden_;
-  dvector output_;
+
 public :
   BackPropagation(const int input_layer, const int hidden_layer,
 		  const int output_layer, const double learn_rate,
@@ -35,12 +34,11 @@ public :
 
   virtual ~BackPropagation(void);
 
-  void train(std::vector< std::pair< dvector, dvector > > data_set);
+  void train(const std::vector< std::pair< dvector, dvector > >& data_set);
   dvector predict(const dvector& input);
 
 private :
-  void forward_propagate(const dvector& input);
-  void back_propagate(const dvector& answer);
+  void back_propagate(const dvector& answer, const dvector& input, const dvector& output);
   void update_weight(void);
 };
 
