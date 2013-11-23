@@ -24,11 +24,11 @@ BackPropagation::BackPropagation(const int input_layer, const int hidden_layer,
 
 BackPropagation::~BackPropagation(void) { }
 
-void BackPropagation::train(std::vector< std::pair< dvector, dvector > > data_set) {
+void BackPropagation::train(const std::vector< std::pair< dvector, dvector > >& data_set) {
   for (std::size_t i = 0; i < max_epoch_; ++i) {
-    for (std::size_t j = 0; j < data_set.size(); ++j) {
-      forward_propagate(data_set[j].second);
-      back_propagate(data_set[j].first);
+    for (auto& data : data_set) {
+      const dvector output = predict(data.second);
+      back_propagate(data.first, data.second, output);
       update_weight();
     }
   }
@@ -43,20 +43,8 @@ BackPropagation::dvector BackPropagation::predict(const dvector& input) {
   return prod(hidden_, weight_hidden_);
 }
 
-
-void BackPropagation::forward_propagate(const dvector& input) {
-  input_ = input;
-  dvector hidden = prod(input_, weight_input_);
-
-  std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
-		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
-
-
-  output_ = prod(hidden_, weight_hidden_);
-}
-
-void BackPropagation::back_propagate(const dvector& answer) {
-  dvector delta = output_ - answer;
+void BackPropagation::back_propagate(const dvector& answer, const dvector& input, const dvector& output) {
+  const dvector delta = output - answer;
   auto sigmoid = [](const double x) { return 1.0 / (1.0 + std::exp(-x)); };
   auto diff_sigmoid = [&](const int x) { return sigmoid(x) * (1.0 - sigmoid(x)); };
   dvector error_hidden = prod(weight_hidden_, delta);
@@ -73,7 +61,7 @@ void BackPropagation::back_propagate(const dvector& answer) {
 
   for (std::size_t i = 0; i < diff_weight_input_.size1(); ++i) {
     for (std::size_t j = 0; j < diff_weight_input_.size2(); ++j) {
-      diff_weight_input_(i, j) = input_[i] * error_hidden[j];
+      diff_weight_input_(i, j) = input[i] * error_hidden[j];
     }
   }
 }
