@@ -16,10 +16,6 @@ BackPropagation::BackPropagation(const int input_layer, const int hidden_layer,
   for (dmatrix::iterator1 it = weight_input_.begin1(); it != weight_input_.end1(); ++it) {
     std::transform(it.begin(), it.end(), it.begin(), [](const double x) { return Random::generate(); });
   }
-
-  for (dmatrix::iterator1 it = weight_hidden_.begin1(); it != weight_hidden_.end1(); ++it) {
-    std::transform(it.begin(), it.end(), it.begin(), [](const double x) { return Random::generate(); });
-  }
 }
 
 BackPropagation::~BackPropagation(void) { }
@@ -27,7 +23,7 @@ BackPropagation::~BackPropagation(void) { }
 void BackPropagation::train(const std::vector< std::pair< dvector, dvector > >& data_set) {
   for (std::size_t i = 0; i < max_epoch_; ++i) {
     for (auto& data : data_set) {
-      const dvector output = predict(data.second);
+      const dvector output = forward_propagete(data.second);
       back_propagate(data.first, data.second, output);
       update_weight();
     }
@@ -36,6 +32,21 @@ void BackPropagation::train(const std::vector< std::pair< dvector, dvector > >& 
 
 BackPropagation::dvector BackPropagation::predict(const dvector& input) {
   dvector hidden = prod(input, weight_input_);
+
+  std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
+		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
+
+  return prod(hidden_, weight_hidden_);
+}
+
+BackPropagation::dvector BackPropagation::forward_propagete(const dvector& input) {
+  dvector hidden = prod(input, weight_input_);
+
+  for (double x : hidden) {
+    if (Random::generate() < dropout_rate_) {
+      x = 0.0;
+    }
+  }
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );

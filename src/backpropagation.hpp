@@ -38,6 +38,7 @@ public :
   dvector predict(const dvector& input);
 
 private :
+  dvector forward_propagete(const dvector& input);
   void back_propagate(const dvector& answer, const dvector& input, const dvector& output);
   void update_weight(void);
 };
