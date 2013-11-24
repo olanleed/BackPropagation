@@ -16,6 +16,10 @@ BackPropagation::BackPropagation(const int input_layer, const int hidden_layer,
   for (dmatrix::iterator1 it = weight_input_.begin1(); it != weight_input_.end1(); ++it) {
     std::transform(it.begin(), it.end(), it.begin(), [](const double x) { return Random::generate(); });
   }
+
+  for (dmatrix::iterator1 it = weight_hidden_.begin1(); it != weight_hidden_.end1(); ++it) {
+    std::transform(it.begin(), it.end(), it.begin(), [](const double x) { return Random::generate(); });
+  }
 }
 
 BackPropagation::~BackPropagation(void) { }
