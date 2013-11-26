@@ -3,9 +3,8 @@
 
 BackPropagation::BackPropagation(const int input_layer, const int hidden_layer,
 				 const int output_layer, const double learn_rate,
-				 const double dropout_rate, const double momentum,
-				 const double weight_decay, const double max_epoch)
-  : learn_rate_(learn_rate), dropout_rate_(dropout_rate), momentum_(momentum),
+				 const double momentum, const double weight_decay, const double max_epoch)
+  : learn_rate_(learn_rate), momentum_(momentum),
     weight_decay_(weight_decay), max_epoch_(max_epoch), hidden_(hidden_layer) {
 
   weight_input_.resize(input_layer, hidden_layer);
@@ -26,9 +25,11 @@ BackPropagation::~BackPropagation(void) { }
 
 void BackPropagation::train(const std::vector< std::pair< dvector, dvector > >& data_set) {
   for (std::size_t i = 0; i < max_epoch_; ++i) {
-    for (auto const& data : data_set) {
-      const dvector output = forward_propagete(data.second);
-      back_propagate(data.first, data.second, output);
+    for (std::size_t j = 0; j < data_set.size(); ++j) {
+      const int index = Random::generate_int(0, data_set.size() - 1);
+      const dvector mask = generate_dropout_mask(hidden_.size());
+      const dvector output = forward_propagete(data_set[index].second, mask);
+      back_propagate(data_set[index].first, data_set[index].second, output, mask);
       update_weight();
     }
   }
@@ -40,19 +41,30 @@ BackPropagation::dvector BackPropagation::predict(const dvector& input) {
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
 
+  dvector tmp = hidden_;
+  for(double& x : tmp) {
+    x /= 2.0;
+  }
+
   return prod(hidden_, weight_hidden_);
 }
 
-BackPropagation::dvector BackPropagation::forward_propagete(const dvector& input) {
+BackPropagation::dvector BackPropagation::forward_propagete(const dvector& input, const dvector& mask) {
   dvector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
 
-  return prod(hidden_, weight_hidden_);
+  dvector masked_hidden(hidden_.size());
+  for (std::size_t i = 0; i < hidden_.size(); ++i) {
+    masked_hidden[i] = hidden_[i] * mask[i];
+  }
+
+  return prod(hidden_, weight_hidden_ );
 }
 
-void BackPropagation::back_propagate(const dvector& answer, const dvector& input, const dvector& output) {
+void BackPropagation::back_propagate(const dvector& answer, const dvector& input,
+				     const dvector& output, const dvector& mask) {
   const dvector delta = output - answer;
   auto sigmoid = [](const double x) { return 1.0 / (1.0 + std::exp(-x)); };
   auto diff_sigmoid = [&](const int x) { return sigmoid(x) * (1.0 - sigmoid(x)); };
