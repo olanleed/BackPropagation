@@ -26,7 +26,7 @@ BackPropagation::~BackPropagation(void) { }
 
 void BackPropagation::train(const std::vector< std::pair< dvector, dvector > >& data_set) {
   for (std::size_t i = 0; i < max_epoch_; ++i) {
-    for (auto& data : data_set) {
+    for (auto const& data : data_set) {
       const dvector output = forward_propagete(data.second);
       back_propagate(data.first, data.second, output);
       update_weight();
@@ -45,12 +45,6 @@ BackPropagation::dvector BackPropagation::predict(const dvector& input) {
 
 BackPropagation::dvector BackPropagation::forward_propagete(const dvector& input) {
   dvector hidden = prod(input, weight_input_);
-
-  for (double x : hidden) {
-    if (Random::generate() < dropout_rate_) {
-      x = 0.0;
-    }
-  }
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
@@ -84,4 +78,19 @@ void BackPropagation::back_propagate(const dvector& answer, const dvector& input
 void BackPropagation::update_weight(void) {
   weight_input_ -= learn_rate_ * diff_weight_input_;
   weight_hidden_ -= learn_rate_ * diff_weight_hidden_;
+}
+
+BackPropagation::dvector BackPropagation::generate_dropout_mask(const int max_size) {
+  dvector mask(max_size, 1.0);
+
+  std::set<int> results;
+  while(results.size() < max_size / 2) {
+    results.insert(Random::generate_int(0, max_size - 1));
+  }
+
+  for (const auto& result : results) {
+    mask(result) = 0.0;
+  }
+
+  return mask;
 }

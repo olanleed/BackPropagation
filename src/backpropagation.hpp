@@ -5,7 +5,7 @@
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <cstddef>
-#include <cmath>
+#include <set>
 
 class BackPropagation {
 public :
@@ -41,6 +41,7 @@ private :
   dvector forward_propagete(const dvector& input);
   void back_propagate(const dvector& answer, const dvector& input, const dvector& output);
   void update_weight(void);
+  dvector generate_dropout_mask(const int max_size);
 };
 
 #endif //BACKPROPAGATION_INCLUDE_BACKPROPAGATION_HPP_
