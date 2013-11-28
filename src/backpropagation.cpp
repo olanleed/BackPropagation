@@ -66,8 +66,6 @@ BackPropagation::dvector BackPropagation::forward_propagete(const dvector& input
 void BackPropagation::back_propagate(const dvector& answer, const dvector& input,
 				     const dvector& output, const dvector& mask) {
   const dvector delta = output - answer;
-  //auto sigmoid = [](const double x) { return 1.0 / (1.0 + std::exp(-x)); };
-  //auto diff_sigmoid = [&](const int x) { return sigmoid(x) * (1.0 - sigmoid(x)); };
   dvector error_hidden = prod(weight_hidden_, delta);
 
   for (std::size_t i = 0; i < error_hidden.size(); ++i) {
