@@ -18,13 +18,13 @@ int main(void) {
   data_set.push_back(std::make_pair(a2, v3));
   data_set.push_back(std::make_pair(a1, v4));
 
-  BackPropagation bp(2, 2, 1, 0.8, 0.5, 0.1, 0.1, 1800);
+  BackPropagation bp(2, 15, 1, 0.5, 0.1, 0.1, 10000);
   bp.train(data_set);
 
-  std::cout << bp.predict(v1) << std::endl;
-  std::cout << bp.predict(v2) << std::endl;
-  std::cout << bp.predict(v3) << std::endl;
-  std::cout << bp.predict(v4) << std::endl;
+  std::cout << bp.predict(v1)(0) << std::endl;
+  std::cout << bp.predict(v2)(0) << std::endl;
+  std::cout << bp.predict(v3)(0) << std::endl;
+  std::cout << bp.predict(v4)(0) << std::endl;
 
   return 0;
 }
