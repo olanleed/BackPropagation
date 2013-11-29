@@ -52,7 +52,7 @@ BackPropagation::dvector BackPropagation::predict(const dvector& input) {
 }
 
 BackPropagation::dvector BackPropagation::forward_propagete(const dvector& input, const dvector& mask) {
-  dvector hidden = prod(input, weight_input_);
+  const dvector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
