@@ -26,6 +26,7 @@ BackPropagation::~BackPropagation(void) { }
 
 void BackPropagation::train(const std::vector< std::pair< dvector, dvector > >& data_set) {
   for (std::size_t i = 0; i < max_epoch_; ++i) {
+    //SGD
     for (std::size_t j = 0; j < 100; ++j) {
       const int index = Random::generate_int(0, data_set.size() - 1);
       const dvector mask = generate_dropout_mask(hidden_.size());
@@ -92,14 +93,15 @@ void BackPropagation::update_weight(void) {
 
 BackPropagation::dvector BackPropagation::generate_dropout_mask(const int max_size) {
   dvector mask(max_size, 1.0);
+  std::set<int> unique_indices;
 
-  std::set<int> results;
-  while(results.size() < (max_size / 2)) {
-    results.insert(Random::generate_int(0, max_size - 1));
+  //半分のhidden layerを脱落させる
+  while(unique_indices.size() < (max_size / 2)) {
+    unique_indices.insert(Random::generate_int(0, max_size - 1));
   }
 
-  for (const auto& result : results) {
-    mask(result) = 0.0;
+  for (const auto& index : unique_indices) {
+    mask(index) = 0.0;
   }
 
   return mask;
