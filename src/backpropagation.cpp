@@ -43,7 +43,8 @@ BackPropagation::dvector BackPropagation::predict(const dvector& input) {
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
 
-  dvector tmp = hidden_;
+  dvector tmp(hidden_.size());
+  std::copy(hidden_.begin(), hidden_.end(), tmp.begin());
   for(double& x : tmp) {
     x /= 2.0;
   }
