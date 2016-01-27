@@ -1,9 +1,8 @@
 #include "../src/backpropagation.hpp"
+#include "../src/optimizers/gd.hpp"
 #include <iostream>
 
 int main(void) {
-  using Matrix = boost::numeric::ublas::matrix<double>;
-  using Vector = boost::numeric::ublas::vector<double>;
   std::vector< std::pair<Vector, Vector> > data_set;
   Vector v1(2), v2(2), v3(2), v4(2);
   Vector a1(1), a2(1);
@@ -18,8 +17,9 @@ int main(void) {
   data_set.push_back(std::make_pair(a2, v3));
   data_set.push_back(std::make_pair(a1, v4));
 
-  BackPropagation bp(2, 15, 1, 0.5, 0.1, 0.1, 10000);
-  bp.train(data_set);
+  auto opt = optimizer::GD(0.7);
+  BackPropagation<optimizer::GD> bp(2, 10, 1, 500, opt);
+  bp.fit(data_set);
 
   std::cout << bp.predict(v1)(0) << std::endl;
   std::cout << bp.predict(v2)(0) << std::endl;

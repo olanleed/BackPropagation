@@ -8,36 +8,38 @@
 #include <set>
 #include <functional>
 
+#include "./optimizers/optimizers.hpp"
+#include "types.hpp"
+
+template <class OptT>
 class BackPropagation {
-public :
-  using dmatrix = boost::numeric::ublas::matrix<double>;
-  using dvector = boost::numeric::ublas::vector<double>;
 
 private :
-  const double learn_rate_;
   const double epoch_;
 
 private:
-  dmatrix weight_input_;
-  dmatrix weight_hidden_;
-  dmatrix diff_weight_input_;
-  dmatrix diff_weight_hidden_;
-  dvector hidden_;
+  Matrix weight_input_;
+  Matrix weight_hidden_;
+  Matrix diff_weight_input_;
+  Matrix diff_weight_hidden_;
+  Vector hidden_;
+
+private :
+  OptT optimizer_;
 
 public :
   BackPropagation(const int input_layer, const int hidden_layer,
-		  const int output_layer, const double learn_rate,
-		  const double epoch);
+		  const int output_layer, const double epoch,
+                  const OptT& optimizer);
 
   virtual ~BackPropagation(void);
 
-  void fit(const std::vector< std::pair< dvector, dvector > >& data_set);
-  dvector predict(const dvector& input);
+  void fit(const std::vector< std::pair< Vector, Vector > >& data_set);
+  Vector predict(const Vector& input);
 
 private :
-  dvector forward(const dvector& input);
-  void backward(const dvector& answer, const dvector& input, const dvector& output);
-  void update_weight(void);
+  Vector forward(const Vector& input);
+  void backward(const Vector& answer, const Vector& input, const Vector& output);
 };
 
 #endif //BACKPROPAGATION_INCLUDE_BACKPROPAGATION_HPP_

@@ -1,39 +1,44 @@
 #include "backpropagation.hpp"
 #include "random_generator.hpp"
 
-BackPropagation::BackPropagation(const int input_layer, const int hidden_layer,
-				 const int output_layer, const double learn_rate,
-				 const double epoch)
-  : learn_rate_(learn_rate), epoch_(epoch), hidden_(hidden_layer) {
+template <class OptT>
+BackPropagation<OptT>::BackPropagation(const int input_layer, const int hidden_layer,
+                                       const int output_layer, const double epoch,
+                                       const OptT& optimizer)
+  : epoch_(epoch), hidden_(hidden_layer), optimizer_(optimizer) {
 
   weight_input_.resize(input_layer, hidden_layer);
   weight_hidden_.resize(hidden_layer, output_layer);
   diff_weight_input_.resize(input_layer, hidden_layer);
   diff_weight_hidden_.resize(hidden_layer, output_layer);
 
-  for (dmatrix::iterator1 it = weight_input_.begin1(); it != weight_input_.end1(); ++it) {
+  for (Matrix::iterator1 it = weight_input_.begin1(); it != weight_input_.end1(); ++it) {
     std::transform(it.begin(), it.end(), it.begin(), [](const double x) { return Random::generate(); });
   }
 
-  for (dmatrix::iterator1 it = weight_hidden_.begin1(); it != weight_hidden_.end1(); ++it) {
+  for (Matrix::iterator1 it = weight_hidden_.begin1(); it != weight_hidden_.end1(); ++it) {
     std::transform(it.begin(), it.end(), it.begin(), [](const double x) { return Random::generate(); });
   }
 }
 
-BackPropagation::~BackPropagation(void) { }
+template <class OptT>
+BackPropagation<OptT>::~BackPropagation(void) { }
 
-void BackPropagation::fit(const std::vector< std::pair< dvector, dvector > >& dataset) {
+template <class OptT>
+void BackPropagation<OptT>::fit(const std::vector< std::pair< Vector, Vector > >& dataset) {
   for (std::size_t i = 0; i < epoch_; ++i) {
     for (const auto& data : dataset) {
-      const dvector output = forward(data.second);
+      const Vector output = forward(data.second);
       backward(data.first, data.second, output);
-      update_weight();
+      optimizer_.update(weight_input_, diff_weight_input_);
+      optimizer_.update(weight_hidden_, diff_weight_hidden_);
     }
   }
 }
 
-BackPropagation::dvector BackPropagation::predict(const dvector& input) {
-  dvector hidden = prod(input, weight_input_);
+template <class OptT>
+Vector BackPropagation<OptT>::predict(const Vector& input) {
+  Vector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
@@ -41,8 +46,9 @@ BackPropagation::dvector BackPropagation::predict(const dvector& input) {
   return prod(hidden_, weight_hidden_);
 }
 
-BackPropagation::dvector BackPropagation::forward(const dvector& input) {
-  const dvector hidden = prod(input, weight_input_);
+template <class OptT>
+Vector BackPropagation<OptT>::forward(const Vector& input) {
+  const Vector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
@@ -50,12 +56,13 @@ BackPropagation::dvector BackPropagation::forward(const dvector& input) {
   return prod(hidden_, weight_hidden_);
 }
 
-void BackPropagation::backward(const dvector& answer, const dvector& input, const dvector& output) {
-  const dvector delta = output - answer;
+template <class OptT>
+void BackPropagation<OptT>::backward(const Vector& answer, const Vector& input, const Vector& output) {
+  const Vector delta = output - answer;
   auto sigmoid = [](const double x) { return 1.0 / (1.0 + std::exp(-x)); };
   auto diff_sigmoid = [&](const double x) { return sigmoid(x) * (1.0 - sigmoid(x)); };
 
-  dvector hidden = prod(weight_hidden_, delta);
+  Vector hidden = prod(weight_hidden_, delta);
 
   for (std::size_t i = 0; i < hidden.size(); ++i) {
     hidden[i] *= diff_sigmoid(hidden_[i]);
@@ -74,7 +81,4 @@ void BackPropagation::backward(const dvector& answer, const dvector& input, cons
   }
 }
 
-void BackPropagation::update_weight(void) {
-  weight_input_ -= learn_rate_ * diff_weight_input_;
-  weight_hidden_ -= learn_rate_ * diff_weight_hidden_;
-}
+template class BackPropagation<optimizer::GD>;
