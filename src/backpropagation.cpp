@@ -37,8 +37,8 @@ void BackPropagation<OptT, FuncT>::fit(const std::vector< std::pair< Vector, Vec
 }
 
 template <class OptT, class FuncT>
-Vector BackPropagation<OptT, FuncT>::predict(const Vector& input) {
-  Vector hidden = prod(input, weight_input_);
+Vector BackPropagation<OptT, FuncT>::representation(const Vector& input) {
+  const Vector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
 		 [&](const double x) { return function_.forward(x); } );
@@ -47,13 +47,13 @@ Vector BackPropagation<OptT, FuncT>::predict(const Vector& input) {
 }
 
 template <class OptT, class FuncT>
+Vector BackPropagation<OptT, FuncT>::predict(const Vector& input) {
+  return representation(input);
+}
+
+template <class OptT, class FuncT>
 Vector BackPropagation<OptT, FuncT>::forward(const Vector& input) {
-  const Vector hidden = prod(input, weight_input_);
-
-  std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
-		 [&](const double x) { return function_.forward(x); } );
-
-  return prod(hidden_, weight_hidden_);
+  return representation(input);
 }
 
 template <class OptT, class FuncT>

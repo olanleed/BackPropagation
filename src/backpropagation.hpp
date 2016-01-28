@@ -40,6 +40,7 @@ public :
   Vector predict(const Vector& input);
 
 private :
+  Vector representation(const Vector& input);
   Vector forward(const Vector& input);
   void backward(const Vector& answer, const Vector& input, const Vector& output);
 };
