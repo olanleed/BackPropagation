@@ -1,11 +1,11 @@
 #include "backpropagation.hpp"
 #include "random_generator.hpp"
 
-template <class OptT>
-BackPropagation<OptT>::BackPropagation(const int input_layer, const int hidden_layer,
-                                       const int output_layer, const double epoch,
-                                       const OptT& optimizer)
-  : epoch_(epoch), hidden_(hidden_layer), optimizer_(optimizer) {
+template <class OptT, class FuncT>
+BackPropagation<OptT, FuncT>::BackPropagation(const int input_layer, const int hidden_layer,
+                                              const int output_layer, const double epoch,
+                                              const OptT& optimizer, const FuncT& function)
+  : epoch_(epoch), hidden_(hidden_layer), optimizer_(optimizer), function_(function) {
 
   weight_input_.resize(input_layer, hidden_layer);
   weight_hidden_.resize(hidden_layer, output_layer);
@@ -21,11 +21,11 @@ BackPropagation<OptT>::BackPropagation(const int input_layer, const int hidden_l
   }
 }
 
-template <class OptT>
-BackPropagation<OptT>::~BackPropagation(void) { }
+template <class OptT, class FuncT>
+BackPropagation<OptT, FuncT>::~BackPropagation(void) { }
 
-template <class OptT>
-void BackPropagation<OptT>::fit(const std::vector< std::pair< Vector, Vector > >& dataset) {
+template <class OptT, class FuncT>
+void BackPropagation<OptT, FuncT>::fit(const std::vector< std::pair< Vector, Vector > >& dataset) {
   for (std::size_t i = 0; i < epoch_; ++i) {
     for (const auto& data : dataset) {
       const Vector output = forward(data.second);
@@ -36,36 +36,34 @@ void BackPropagation<OptT>::fit(const std::vector< std::pair< Vector, Vector > >
   }
 }
 
-template <class OptT>
-Vector BackPropagation<OptT>::predict(const Vector& input) {
+template <class OptT, class FuncT>
+Vector BackPropagation<OptT, FuncT>::predict(const Vector& input) {
   Vector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
-		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
+		 [&](const double x) { return function_.forward(x); } );
 
   return prod(hidden_, weight_hidden_);
 }
 
-template <class OptT>
-Vector BackPropagation<OptT>::forward(const Vector& input) {
+template <class OptT, class FuncT>
+Vector BackPropagation<OptT, FuncT>::forward(const Vector& input) {
   const Vector hidden = prod(input, weight_input_);
 
   std::transform(hidden.begin(), hidden.end(), hidden_.begin(),
-		 [](const double x) { return 1.0 / (1.0 + std::exp(-x)); } );
+		 [&](const double x) { return function_.forward(x); } );
 
   return prod(hidden_, weight_hidden_);
 }
 
-template <class OptT>
-void BackPropagation<OptT>::backward(const Vector& answer, const Vector& input, const Vector& output) {
+template <class OptT, class FuncT>
+void BackPropagation<OptT, FuncT>::backward(const Vector& answer, const Vector& input, const Vector& output) {
   const Vector delta = output - answer;
-  auto sigmoid = [](const double x) { return 1.0 / (1.0 + std::exp(-x)); };
-  auto diff_sigmoid = [&](const double x) { return sigmoid(x) * (1.0 - sigmoid(x)); };
 
   Vector hidden = prod(weight_hidden_, delta);
 
   for (std::size_t i = 0; i < hidden.size(); ++i) {
-    hidden[i] *= diff_sigmoid(hidden_[i]);
+    hidden[i] *= function_.backward(hidden_[i]);
   }
 
   for (std::size_t i = 0; i < diff_weight_hidden_.size1(); ++i) {
@@ -81,4 +79,6 @@ void BackPropagation<OptT>::backward(const Vector& answer, const Vector& input, 
   }
 }
 
-template class BackPropagation<optimizer::GD>;
+template class BackPropagation<optimizer::GD, functions::Tanh>;
+template class BackPropagation<optimizer::GD, functions::Sigmoid>;
+template class BackPropagation<optimizer::GD, functions::Relu>;

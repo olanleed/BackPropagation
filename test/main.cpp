@@ -1,5 +1,6 @@
 #include "../src/backpropagation.hpp"
-#include "../src/optimizers/gd.hpp"
+#include "../src/optimizers/optimizers.hpp"
+#include "../src/functions/functions.hpp"
 #include <iostream>
 
 int main(void) {
@@ -17,8 +18,9 @@ int main(void) {
   data_set.push_back(std::make_pair(a2, v3));
   data_set.push_back(std::make_pair(a1, v4));
 
-  auto opt = optimizer::GD(0.7);
-  BackPropagation<optimizer::GD> bp(2, 10, 1, 500, opt);
+  auto optimizer = optimizer::GD(0.2);
+  auto function = functions::Relu();
+  BackPropagation<optimizer::GD, functions::Relu> bp(2, 10, 1, 200, optimizer, function);
   bp.fit(data_set);
 
   std::cout << bp.predict(v1)(0) << std::endl;

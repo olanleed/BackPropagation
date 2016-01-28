@@ -9,9 +9,10 @@
 #include <functional>
 
 #include "./optimizers/optimizers.hpp"
+#include "./functions/functions.hpp"
 #include "types.hpp"
 
-template <class OptT>
+template <class OptT, class FuncT>
 class BackPropagation {
 
 private :
@@ -26,11 +27,12 @@ private:
 
 private :
   OptT optimizer_;
+  const FuncT function_;
 
 public :
   BackPropagation(const int input_layer, const int hidden_layer,
 		  const int output_layer, const double epoch,
-                  const OptT& optimizer);
+                  const OptT& optimizer, const FuncT& function);
 
   virtual ~BackPropagation(void);
 
